@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kyle Kua — Lifelong learner</title>
+  <meta name="description" content="Kyle Kua — Knight-Hennessy Scholar at Stanford GSB and Kennedy Fellow at Harvard Kennedy School. Straddling AI & tech and policy & development." />
+  <meta property="og:title" content="Kyle Kua — Lifelong learner" />
+  <meta property="og:description" content="MBA at Stanford GSB (Knight-Hennessy Scholar) · MPA/ID at Harvard Kennedy School (Kennedy Fellow)" />
+  <meta property="og:url" content="https://kylekua.com" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf9f6;
+      --text: #1a1a1a;
+      --muted: #55524c;
+      --accent: #8c1515; /* Stanford cardinal, warm and personal */
+      --accent-2: #a51c30; /* Harvard crimson */
+      --line: #e6e2da;
+      --maxw: 640px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+    main {
+      width: 100%;
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 96px 24px 48px;
+      flex: 1;
+    }
+    .photo-wrap {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid var(--line);
+      margin-bottom: 32px;
+    }
+    .photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 81%;      /* vertical framing on face */
+      transform: scale(3.4);         /* zoom level — raise/lower to taste */
+      transform-origin: 43.7% 50%;   /* zoom anchored on face */
+    }
+    .photo-placeholder {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-size: 44px;
+      font-weight: 600;
+      margin-bottom: 32px;
+      letter-spacing: 1px;
+    }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: clamp(38px, 7vw, 52px);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      font-size: 19px;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 36px;
+      font-style: italic;
+      font-family: 'Fraunces', serif;
+    }
+    .bio p {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .bio strong { color: var(--text); font-weight: 500; }
+    .locations {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: 36px 0 44px;
+      font-size: 14.5px;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+    .locations .dot { color: var(--accent); }
+    .links {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 15px;
+      padding: 10px 20px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    }
+    .links a:hover {
+      border-color: var(--accent);
+      background: #fff;
+      transform: translateY(-1px);
+    }
+    .links a svg { width: 17px; height: 17px; fill: var(--accent); }
+    footer {
+      max-width: var(--maxw);
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+      border-top: 1px solid var(--line);
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    @media (max-width: 480px) {
+      main { padding-top: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- Save your photo as kyle.jpg next to this file. If it's missing,
+         the "KK" placeholder shows automatically. -->
+    <div class="photo-wrap">
+      <img src="kyle.jpg" alt="Kyle Kua at Vernal Fall, Yosemite"
+           onerror="this.parentElement.outerHTML='&lt;div class=&quot;photo-placeholder&quot;&gt;KK&lt;/div&gt;'" />
+    </div>
+
+    <h1>Kyle Kua</h1>
+    <p class="tagline">Lifelong learner</p>
+
+    <div class="bio">
+      <p>Kyle Kua is pursuing an MBA at <strong>Stanford Graduate School of Business</strong>, where he is a Knight-Hennessy Scholar, and an MPA in International Development at <strong>Harvard Kennedy School</strong>, where he is a Kennedy Fellow.</p>
+      <p>In his free time, he enjoys exploring the unknown — whether it be going on hikes across national and state parks, trying new restaurants, or building cutting-edge products on the precipice of technology.</p>
+      <p>Today, Kyle straddles the worlds of <strong>AI and tech</strong> as well as <strong>policy and development</strong>, situated between San Francisco and Boston.</p>
+    </div>
+
+    <div class="locations">
+      <span>San Francisco</span><span class="dot">·</span><span>Boston</span>
+    </div>
+
+    <div class="links">
+      <a href="https://www.linkedin.com/in/kylekua/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+        LinkedIn
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Kyle Kua · kylekua.com
+  </footer>
+</body>
+</html>
