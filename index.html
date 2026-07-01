@@ -14,12 +14,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #faf9f6;
-      --text: #1a1a1a;
-      --muted: #55524c;
-      --accent: #8c1515; /* Stanford cardinal, warm and personal */
-      --accent-2: #a51c30; /* Harvard crimson */
-      --line: #e6e2da;
+      --bg: #fafaf8;
+      --text: #17171a;
+      --muted: #5c5a56;
+      --accent: #8c1515;
+      --accent-2: #a51c30;
+      --line: #e7e4dd;
+      --pixel: 140, 21, 21;      /* rgb for pixel tints */
       --maxw: 640px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,7 +35,29 @@
       display: flex;
       min-height: 100vh;
       flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
     }
+
+    /* ---- pixel background ---- */
+    #pixels {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    /* soft vignette so pixels fade behind the text column */
+    .veil {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse 62% 75% at 50% 42%,
+                  var(--bg) 38%, rgba(250,250,248,0.82) 62%, rgba(250,250,248,0) 100%);
+    }
+
+    main, footer { position: relative; z-index: 2; }
+
     main {
       width: 100%;
       max-width: var(--maxw);
@@ -49,6 +72,7 @@
       overflow: hidden;
       border: 3px solid var(--line);
       margin-bottom: 32px;
+      box-shadow: 0 2px 16px rgba(23,23,26,0.06);
     }
     .photo-wrap img {
       width: 100%;
@@ -89,6 +113,17 @@
       font-style: italic;
       font-family: 'Fraunces', serif;
     }
+    /* blinking cursor after the tagline — a quiet nod to the terminal */
+    .tagline::after {
+      content: '▌';
+      font-style: normal;
+      font-size: 15px;
+      margin-left: 6px;
+      color: var(--accent);
+      animation: blink 1.15s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
     .bio p {
       color: var(--muted);
       margin-bottom: 20px;
@@ -120,6 +155,7 @@
       padding: 10px 20px;
       border: 1.5px solid var(--line);
       border-radius: 999px;
+      background: rgba(255,255,255,0.6);
       transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
     }
     .links a:hover {
@@ -140,9 +176,15 @@
     @media (max-width: 480px) {
       main { padding-top: 64px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      .tagline::after { animation: none; }
+    }
   </style>
 </head>
 <body>
+  <canvas id="pixels" aria-hidden="true"></canvas>
+  <div class="veil" aria-hidden="true"></div>
+
   <main>
     <!-- Save your photo as kyle.jpg next to this file. If it's missing,
          the "KK" placeholder shows automatically. -->
@@ -157,7 +199,7 @@
     <div class="bio">
       <p>Kyle Kua is pursuing an MBA at <strong>Stanford Graduate School of Business</strong>, where he is a Knight-Hennessy Scholar, and an MPA in International Development at <strong>Harvard Kennedy School</strong>, where he is a Kennedy Fellow.</p>
       <p>In his free time, he enjoys exploring the unknown — whether it be going on hikes across national and state parks, trying new restaurants, or building cutting-edge products on the precipice of technology.</p>
-      <p>Today, Kyle straddles the worlds of <strong>AI and tech</strong> as well as <strong>policy and development</strong>, situated between San Francisco and Boston.</p>
+      <p>Today, Kyle straddles the worlds of <strong>AI and tech</strong> as well as <strong>policy and development</strong>, traveling between San Francisco and Boston.</p>
     </div>
 
     <div class="locations">
@@ -175,5 +217,170 @@
   <footer>
     © 2026 Kyle Kua · kylekua.com
   </footer>
+
+  <script>
+    // Minimal "bits and pixels" background:
+    // a faint pixel grid where sparse cells softly blink in and out.
+    (function () {
+      const canvas = document.getElementById('pixels');
+      const ctx = canvas.getContext('2d');
+      const CELL = 22;          // grid spacing (px)
+      const SIZE = 5;           // pixel square size (px)
+      const DENSITY = 0.018;    // fraction of cells alive at once
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let cols, rows, sparks = [];
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = innerWidth * dpr;
+        canvas.height = innerHeight * dpr;
+        canvas.style.width = innerWidth + 'px';
+        canvas.style.height = innerHeight + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        cols = Math.ceil(innerWidth / CELL);
+        rows = Math.ceil(innerHeight / CELL);
+        seed();
+        drawStatic();
+      }
+
+      // faint static grid pixels (drawn every frame as the base layer)
+      function drawStatic() {
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        ctx.fillStyle = 'rgba(23,23,26,0.04)';
+        for (let x = 0; x < cols; x++)
+          for (let y = 0; y < rows; y++)
+            ctx.fillRect(x * CELL, y * CELL, 3, 3);
+        drawSkylines();
+      }
+
+      /* ---- pixel skylines: San Francisco (left) & Boston (right) ---- */
+      // Each city is a set of pixels; x runs right, y runs UP from the ground.
+      function makeCity(builder) {
+        const s = new Set();
+        builder((x, y) => s.add(x + ',' + y));
+        return s;
+      }
+      const SF = makeCity(add => {
+        const rect = (x0, w, h) => { for (let x = x0; x < x0 + w; x++) for (let y = 0; y < h; y++) add(x, y); };
+        // Golden Gate Bridge: two towers, deck, sagging main cable
+        for (const tx of [1, 10]) {
+          for (let y = 2; y < 14; y++) { add(tx, y); add(tx + 2, y); }
+          for (const y of [4, 7, 10, 13]) add(tx + 1, y);
+        }
+        for (let x = -1; x < 15; x++) add(x, 2);                    // deck
+        for (let x = 2; x <= 11; x++) {                             // main cable
+          const t = (x - 6.5) / 4.5;
+          add(x, Math.round(4 + 9 * t * t));
+        }
+        // Transamerica Pyramid
+        for (let y = 0; y < 14; y++) {
+          const half = Math.max(0, Math.round(3 * (1 - y / 12)));
+          for (let x = 19 - half; x <= 19 + half; x++) add(x, y);
+        }
+        rect(24, 4, 6);                                             // mid-rise
+        rect(29, 4, 8);                                             // mid-rise
+        rect(34, 5, 13);                                            // Salesforce Tower
+        for (let x = 35; x <= 37; x++) add(x, 13);                  // rounded crown
+        rect(41, 3, 5);                                             // low block
+      });
+      const BOS = makeCity(add => {
+        const rect = (x0, w, h) => { for (let x = x0; x < x0 + w; x++) for (let y = 0; y < h; y++) add(x, y); };
+        rect(0, 3, 4); add(1, 4);                                   // brownstones
+        rect(4, 3, 5); add(5, 5);                                   // (pitched roofs)
+        rect(8, 6, 3);                                              // State House base
+        for (let x = 9; x <= 12; x++) add(x, 3);                    // dome
+        add(10, 4); add(11, 4); add(10, 5);                         // dome + lantern
+        rect(15, 4, 10); add(16, 10); add(17, 10); add(16, 11);     // Custom House Tower
+        rect(21, 5, 13); add(23, 13); add(23, 14);                  // Prudential + antenna
+        rect(27, 4, 12);                                            // 200 Clarendon (Hancock)
+        rect(32, 3, 6);                                             // low block
+      });
+      // blinking rooftop beacons: [city, x, y]
+      const BEACONS = [
+        ['sf', 2, 14], ['sf', 11, 14], ['sf', 36, 14],
+        ['bos', 23, 15], ['bos', 28, 12]
+      ];
+      const CITY_W = 46; // art width in art-pixels
+
+      function drawCityAt(city, ox, P) {
+        for (const key of city) {
+          const [x, y] = key.split(',').map(Number);
+          ctx.fillRect(ox + x * P, innerHeight - (y + 1) * P, P - 1, P - 1);
+        }
+      }
+      function skyLayout() {
+        // Scale the two skylines to span the full viewport width — a true backdrop.
+        const margin = 32, gap = 48;
+        let P = Math.floor((innerWidth - 2 * margin - gap) / (2 * CITY_W));
+        P = Math.max(5, Math.min(P, 18));           // big blocky pixels, within reason
+        const w = CITY_W * P;
+        const fitsBoth = 2 * w + gap + 2 * margin <= innerWidth + 4;
+        return {
+          P,
+          sfx: fitsBoth ? margin : Math.round((innerWidth - w) / 2),
+          bosx: innerWidth - w - margin,
+          fitsBoth
+        };
+      }
+      function drawSkylines() {
+        const { P, sfx, bosx, fitsBoth } = skyLayout();
+        ctx.fillStyle = 'rgba(23,23,26,0.055)';
+        drawCityAt(SF, sfx, P);
+        if (fitsBoth) drawCityAt(BOS, bosx, P);
+        // beacons
+        const pulse = 0.07 + 0.14 * (Math.sin(Date.now() / 900) + 1) / 2;
+        ctx.fillStyle = 'rgba(140,21,21,' + pulse.toFixed(3) + ')';
+        for (const [c, x, y] of BEACONS) {
+          if (c === 'bos' && !fitsBoth) continue;
+          const ox = c === 'sf' ? sfx : bosx;
+          ctx.fillRect(ox + x * P, innerHeight - (y + 1) * P, P - 1, P - 1);
+        }
+      }
+
+      function newSpark() {
+        // mostly warm greys, occasionally the cardinal accent
+        const accent = Math.random() < 0.22;
+        return {
+          x: Math.floor(Math.random() * cols),
+          y: Math.floor(Math.random() * rows),
+          t: Math.random() * Math.PI,               // phase
+          speed: 0.008 + Math.random() * 0.012,     // blink speed
+          color: accent ? '140,21,21' : '90,88,84',
+          max: accent ? 0.35 : 0.22                 // peak opacity
+        };
+      }
+
+      function seed() {
+        sparks = Array.from({ length: Math.floor(cols * rows * DENSITY) }, newSpark);
+      }
+
+      function frame() {
+        drawStatic();
+        for (let i = 0; i < sparks.length; i++) {
+          const s = sparks[i];
+          s.t += s.speed;
+          const a = Math.sin(s.t) * s.max;
+          if (s.t >= Math.PI) { sparks[i] = newSpark(); continue; }
+          ctx.fillStyle = 'rgba(' + s.color + ',' + a.toFixed(3) + ')';
+          ctx.fillRect(s.x * CELL - (SIZE - 3) / 2, s.y * CELL - (SIZE - 3) / 2, SIZE, SIZE);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      addEventListener('resize', resize);
+      resize();
+
+      if (reduced) {
+        // no animation: render one gentle static arrangement
+        for (const s of sparks) {
+          ctx.fillStyle = 'rgba(' + s.color + ',' + (s.max * 0.7).toFixed(3) + ')';
+          ctx.fillRect(s.x * CELL, s.y * CELL, SIZE, SIZE);
+        }
+      } else {
+        requestAnimationFrame(frame);
+      }
+    })();
+  </script>
 </body>
 </html>
